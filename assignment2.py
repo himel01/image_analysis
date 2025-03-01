@@ -5,6 +5,7 @@ from keras._tf_keras.keras.applications import ResNet50
 from keras._tf_keras.keras.optimizers import Adam
 
 from keras._tf_keras.keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import precision_score, recall_score, f1_score
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -56,6 +57,8 @@ model_cnn.summary()
 history_cnn = model_cnn.fit(datagen.flow(x_train, y_train, batch_size=64),
                             epochs=20,
                             validation_data=(x_test, y_test))
+
+
 
 base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
 
