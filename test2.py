@@ -41,17 +41,12 @@ model_cnn = models.Sequential([
     layers.Input((32, 32, 3)),
     layers.Conv2D(32, (3, 3), activation='relu'),
     layers.MaxPooling2D((2, 2)),
-
     layers.Conv2D(64, (3, 3), activation='relu'),
     layers.MaxPooling2D((2, 2)),
-
-    layers.Conv2D(64, (3, 3), activation='relu'),
+    layers.Conv2D(128, (3, 3), activation='relu'),
+    layers.MaxPooling2D((2, 2)),
     layers.Flatten(),
-
-    layers.Dense(64, activation='relu'),
-
-    #layers.Dropout(0.5),
-    
+    layers.Dense(128, activation='relu'),
     layers.Dense(10, activation='softmax')
 ])
 
@@ -67,7 +62,7 @@ model_cnn.summary()
 #history_cnn = model_cnn.fit(x_train, y_train_onehot, epochs=20, batch_size=64,validation_data=(x_test, y_test_onehot))
 
 history_cnn = model_cnn.fit(datagen.flow(x_train, y_train_onehot, batch_size=64),
-                            epochs=20,
+                            epochs=50,
                             validation_data=(x_test, y_test_onehot))
 
 # Predict on the test set
@@ -86,18 +81,23 @@ print(f"Precision: {precision_cnn:.4f}")
 print(f"Recall: {recall_cnn:.4f}")
 print(f"F1-Score: {f1_cnn:.4f}")
 
+x_train_resized = tf.image.resize(x_train, [224, 224])
+x_test_resized = tf.image.resize(x_test, [224, 224])
+
 # Load ResNet50 with pre-trained weights
-base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(32, 32, 3))
+base_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
 
 # Freeze the base model
-base_model.trainable = False
+base_model.trainable = True
+for layer in base_model.layers[:-10]:
+    layer.trainable = False
 
 # Add custom layers
 model_resnet = models.Sequential([
     base_model,
     layers.GlobalAveragePooling2D(),
     #layers.Dense(1024, activation='relu'),
-    layers.Dense(64, activation='relu'),
+    layers.Dense(256, activation='relu'),
     layers.Dense(10, activation='softmax')
 ])
 
@@ -109,8 +109,10 @@ model_resnet.compile(optimizer=Adam(learning_rate=0.001),
 model_resnet.summary()
 
 # Train the ResNet model
-history_resnet = model_resnet.fit(x_train, y_train_onehot, epochs=10, batch_size=64,
-                                  validation_data=(x_test, y_test_onehot))
+#history_resnet = model_resnet.fit(x_train, y_train_onehot, epochs=10, batch_size=64,validation_data=(x_test, y_test_onehot))
+
+history_resnet = model_resnet.fit(x_train_resized, y_train_onehot, epochs=10, batch_size=32,
+                                  validation_data=(x_test_resized, y_test_onehot))
 
 # Predict on the test set
 y_pred_resnet = model_resnet.predict(x_test)
