@@ -36,11 +36,17 @@ datagen.fit(x_train)
 model_cnn = models.Sequential([
     layers.Conv2D(32, (3, 3), activation='relu', input_shape=(32, 32, 3)),
     layers.MaxPooling2D((2, 2)),
+
     layers.Conv2D(64, (3, 3), activation='relu'),
     layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64, (3, 3), activation='relu'),
+
+    #layers.Conv2D(64, (3, 3), activation='relu'),
     layers.Flatten(),
+
     layers.Dense(64, activation='relu'),
+
+    layers.Dropout(0.5),
+    
     layers.Dense(10, activation='softmax')
 ])
 
@@ -48,6 +54,9 @@ model_cnn = models.Sequential([
 model_cnn.compile(optimizer='adam',
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
+
+# Print model summary
+model_cnn.summary()
 
 # Train the CNN model
 #history_cnn = model_cnn.fit(x_train, y_train_onehot, epochs=20, batch_size=64,validation_data=(x_test, y_test_onehot))
@@ -82,7 +91,8 @@ base_model.trainable = False
 model_resnet = models.Sequential([
     base_model,
     layers.GlobalAveragePooling2D(),
-    layers.Dense(256, activation='relu'),
+    layers.Dense(1024, activation='relu'),
+    layers.Dense(512, activation='relu'),
     layers.Dense(10, activation='softmax')
 ])
 
@@ -90,6 +100,8 @@ model_resnet = models.Sequential([
 model_resnet.compile(optimizer=Adam(learning_rate=0.001),
                     loss='categorical_crossentropy',
                     metrics=['accuracy'])
+
+model_resnet.summary()
 
 # Train the ResNet model
 history_resnet = model_resnet.fit(x_train, y_train_onehot, epochs=10, batch_size=64,
@@ -114,7 +126,7 @@ print(f"F1-Score: {f1_resnet:.4f}")
 test_loss_cnn, test_acc_cnn = model_cnn.evaluate(x_test, y_test_onehot)
 print("CNN Test Accuracy:", test_acc_cnn)
 
-test_loss_resnet, test_acc_resnet = model_resnet.evaluate(x_test, y_train_onehot)
+test_loss_resnet, test_acc_resnet = model_resnet.evaluate(x_test, y_test_onehot)
 print("ResNet Test Accuracy:", test_acc_resnet)
 
 # Plot CNN training history
